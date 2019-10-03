@@ -12,7 +12,8 @@ from matplotlib import pyplot as plt
 
 def epoch_window(P, L, win_type, Fs, DBplot=False):
     """
-    calculate overlap size (in samples) and window length for overlap-and-add type analysis
+    calculate overlap size (in samples) and window length for overlap-and-add 
+    type analysis
 
 
     Parameters

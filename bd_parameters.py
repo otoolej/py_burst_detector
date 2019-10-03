@@ -15,8 +15,9 @@ class bdParams:
     # -------------------------------------------------------------------
     #  feature set (which features to use and what frequency band)
     # -------------------------------------------------------------------
-    feature_set_final: tuple = ('envelope', 'fd-higuchi', 'edo', 'if', 'psd_r2',
-                                'envelope', 'envelope', 'spec-power')
+    # order important here as other variables rely on it
+    feature_set_final: tuple = ('envelope', 'fd_higuchi', 'edo', 'if', 'psd_r2',
+                                'envelope', 'envelope', 'rel_spectral_power')
     feature_set_freqbands: tuple = (
         (0, 1, 0, 0, 0),
         None,
@@ -36,6 +37,17 @@ class bdParams:
     #     'envelope': (0, 0, 0, 0, 1),
     #     'envelope': (0, 0, 0, 1, 0),
     #     'spec-power': (0, 0, 0, 0, 1)}
+
+    # epoch size is slightly different for each feature
+    # (follows feature order from above); (in seconds):
+    epoch_length: tuple = (1, 1, 1, 2, 2, 1, 1, 2)
+    # 75% overlap in feature epoch
+    overlap: int = 75
+    # type of window used:
+    epoch_win_type: tuple = ('rect', 'rect', 'rect',
+                             'rect', 'hamm', 'rect', 'rect', 'hamm')
+    # frequency resolution for PSD estimates:
+    N_freq = 2048
 
     # -------------------------------------------------------------------
     #  parameters for SVM (DO NOT EDIT)
