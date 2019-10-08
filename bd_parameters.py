@@ -19,14 +19,14 @@ class bdParams:
     feature_set_final: tuple = ('envelope', 'fd_higuchi', 'edo', 'if', 'psd_r2',
                                 'envelope', 'envelope', 'rel_spectral_power')
     feature_set_freqbands: tuple = (
-        (0, 1, 0, 0, 0),
-        None,
-        None,
-        (0, 0, 0, 0, 1),
-        (0, 1, 0, 0, 0),
-        (0, 0, 0, 0, 1),
-        (0, 0, 0, 1, 0),
-        (0, 0, 0, 0, 1))
+        (0, 1, 0, 0, 0), # envelope
+        None, # FD
+        None, # EDO
+        (0, 0, 0, 0, 1), # IF
+        (0, 1, 0, 0, 0), # PSD r2
+        (0, 0, 0, 0, 1), # envelope
+        (0, 0, 0, 1, 0), # envelope
+        (0, 0, 0, 0, 1)) # relative PSD
 
     # feature_set_final = {
     #     'envelope': (0, 1, 0, 0, 0),

@@ -3,7 +3,7 @@ feature set
 
 John M. O' Toole, University College Cork
 Started: 06-09-2019
-last update: Time-stamp: <2019-10-02 18:49:46 (otoolej)>
+last update: Time-stamp: <2019-10-08 13:25:43 (otoolej)>
 """
 import numpy as np
 from matplotlib import pyplot as plt
@@ -87,7 +87,6 @@ def env(x, Fs, params=None, DBplot=False):
 def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
     """estimate median of envelope (using Hilbert transform) over a 2-second window
 
-
     Parameters
     ----------
     x: array_like
@@ -105,7 +104,6 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
     DBplot: bool, optional
         plot feature vs. signal
 
-
     Returns
     -------
     t_stat : ndarray
@@ -121,7 +119,7 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
     f_band_total = arg_list['total_freq_band']
     params = arg_list['params']
 
-    print(f_band_total)
+    print("f_band = {0}; total_f_band = {1}".format(f_band, f_band_total))
 
     DBcheck = True
 
@@ -148,10 +146,16 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
     #   short-time analysis)
     # -------------------------------------------------------------------
     if feat_type == 'envelope':
-        # get the envelope:
+        # -------------------------------------------------------------------
+        #  envelope of the signal using the Hilbert transform
+        # -------------------------------------------------------------------
         x = abs(hilbert(x))
 
     elif feat_type == 'psd_r2':
+        # -------------------------------------------------------------------
+        #  goodness-of-fit of line to log-log PSD
+        # -------------------------------------------------------------------
+        
         # define the frequency range and conver to log-scale
         freq = np.linspace(0, Fs/2, params.N_freq)
         irange = np.where((freq > f_band[0]) & (freq < f_band[1]))
@@ -162,6 +166,10 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
                 freq_limit[0], freq_limit[-1]))
 
     elif feat_type == 'rel_spectral_power':
+        # -------------------------------------------------------------------
+        #  relative spectral power
+        # -------------------------------------------------------------------
+        
         # define the frequency range and conver to log-scale
         freq = np.linspace(0, Fs/2, np.ceil(params.N_freq / 2).astype(int))
         irange = np.where((freq > f_band[0]) & (freq <= f_band[1]))
@@ -174,8 +182,27 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
                 freq_limit[0], freq_limit[-1]))
             print("Total frequencies between {0:g} and {1:g} Hz".format(
                 freq_limit_total[0], freq_limit_total[-1]))
-            print("i_BP =({0}, {1}); i_BP =({2}, {3});".format(irange[0][0], irange[0][-1],
-                                                               irange_total[0][0], irange_total[0][-1]))
+            print("i_BP =({0}, {1}); i_BP =({2}, {3});"
+                  .format(irange[0][0], irange[0][-1],
+                          irange_total[0][0], irange_total[0][-1]))
+
+    elif feat_type == 'if':
+        # -------------------------------------------------------------------
+        #  instantaneous frequency estimate
+        # -------------------------------------------------------------------
+        
+        # estimate instantaneous frequency (IF):
+        est_IF = estimate_IF(x, Fs)
+
+        # bind within frequency bands:
+        est_IF[est_IF > f_band[1]] = f_band[1]
+        est_IF[est_IF < f_band[0]] = f_band[0]
+
+        # normalized between 0 and 1 (need when combining features):
+        est_IF = (est_IF - f_band[0]) / (f_band[1] - f_band[0])
+
+        # invert:
+        x = 1 - est_IF
 
     # -------------------------------------------------------------------
     #  iterate over all the epochs
@@ -194,7 +221,7 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
         # different actions for different features:
         if feat_type == 'envelope':
             # median value over the epoch:
-            feat_x = np.median(y[nf])
+            feat_x = np.median(x_epoch)
 
         elif feat_type == 'psd_r2':
             # generate the log-log spectrum and fit a line:
@@ -206,6 +233,9 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
             # generate the log-log spectrum and fit a line:
             pxx = abs(np.fft.fft(x_epoch, params.N_freq)) ** 2
             feat_x = sum(pxx[irange]) / sum(pxx[irange_total])
+
+        elif feat_type == 'if':
+            feat_x = np.median(x_epoch)
 
         # upsample to EEG sampling rate:
         z_all[nf] = z_all[nf] + (np.ones(epoch_p['L_epoch']) * feat_x)
@@ -264,3 +294,38 @@ def ls_fit_params(x, y, DBplot=True):
         plt.show()
 
     return(r2)
+
+
+def estimate_IF(x, Fs=1):
+    """instantaneous frequency estimate from angle
+        of analytic signal
+
+    Parameters
+    ----------
+    x: ndarray
+        input signal
+    Fs: scalar
+        sampling frequency
+
+    Returns
+    -------
+    if_a : ndarray
+        IF array
+    """
+    if np.all(np.isreal(x)):
+        z = hilbert(x)
+    else:
+        z = x
+    N = len(z)
+
+    MF = 2 * np.pi
+    SCALE = Fs / (4 * np.pi)
+
+    if_a = np.zeros(N,)
+    n = np.arange(0, N - 2)
+
+    # central finite difference for IF:
+    z_diff = np.angle(z[n+2]) - np.angle(z[n])
+    if_a[n + 1] = np.mod(MF + z_diff, MF) * SCALE
+
+    return(if_a)
