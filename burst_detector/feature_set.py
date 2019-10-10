@@ -3,7 +3,7 @@ feature set
 
 John M. O' Toole, University College Cork
 Started: 06-09-2019
-last update: Time-stamp: <2019-10-08 13:25:43 (otoolej)>
+last update: Time-stamp: <2019-10-09 17:05:27 (otoolej)>
 """
 import numpy as np
 from matplotlib import pyplot as plt
@@ -119,9 +119,7 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
     f_band_total = arg_list['total_freq_band']
     params = arg_list['params']
 
-    print("f_band = {0}; total_f_band = {1}".format(f_band, f_band_total))
-
-    DBcheck = True
+    DBcheck = False
 
     if params is None:
         params = bd_parameters.bdParams()
@@ -170,21 +168,30 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
         #  relative spectral power
         # -------------------------------------------------------------------
         
-        # define the frequency range and conver to log-scale
-        freq = np.linspace(0, Fs/2, np.ceil(params.N_freq / 2).astype(int))
-        irange = np.where((freq > f_band[0]) & (freq <= f_band[1]))
-        irange_total = np.where(
-            (freq > f_band_total[0]) & (freq <= f_band_total[1]))
-        freq_limit = freq[irange]
-        freq_limit_total = freq[irange_total]
+        # define the frequency range (to keep the same as per Matlab code):
+        f_scale = params.N_freq / Fs
+        irange = np.arange(np.ceil(f_band[0] * f_scale).astype(int),
+                           np.floor(f_band[1] * f_scale).astype(int) + 1);
+        irange_total = np.arange(np.ceil(f_band_total[0] * f_scale).astype(int),
+                                 np.floor(f_band_total[1] * f_scale).astype(int) + 1)
+        irange = irange - 1
+        irange_total = irange_total - 1        
+
         if DBcheck:
+            freq = np.linspace(0, Fs/2, np.round(params.N_freq / 2).astype(int))
+            # irange = np.where((freq > f_band[0]) & (freq <= f_band[1]))
+            # irange_total = np.where(
+            #     (freq > f_band_total[0]) & (freq <= f_band_total[1]))
+            freq_limit = freq[irange]
+            freq_limit_total = freq[irange_total]
+            
             print("frequencies between {0:g} and {1:g} Hz".format(
                 freq_limit[0], freq_limit[-1]))
             print("Total frequencies between {0:g} and {1:g} Hz".format(
                 freq_limit_total[0], freq_limit_total[-1]))
             print("i_BP =({0}, {1}); i_BP =({2}, {3});"
-                  .format(irange[0][0], irange[0][-1],
-                          irange_total[0][0], irange_total[0][-1]))
+                  .format(irange[0], irange[-1],
+                          irange_total[0], irange_total[-1]))
 
     elif feat_type == 'if':
         # -------------------------------------------------------------------
@@ -227,12 +234,13 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
             # generate the log-log spectrum and fit a line:
             pxx = abs(np.fft.fft(x_epoch, params.N_freq))
             pxx_db = 20 * np.log10(pxx[irange])
-            feat_x = ls_fit_params(freq_db, pxx_db, DBplot=True)
+            feat_x = ls_fit_params(freq_db, pxx_db, DBplot=False)
 
         elif feat_type == 'rel_spectral_power':
             # generate the log-log spectrum and fit a line:
             pxx = abs(np.fft.fft(x_epoch, params.N_freq)) ** 2
             feat_x = sum(pxx[irange]) / sum(pxx[irange_total])
+
 
         elif feat_type == 'if':
             feat_x = np.median(x_epoch)
@@ -253,7 +261,7 @@ def feat_short_time_an(x, Fs, feat_type='envelope', **kwargs):
     return t_stat
 
 
-def ls_fit_params(x, y, DBplot=True):
+def ls_fit_params(x, y, DBplot=False):
     """least squares line fit
 
     Parameters
