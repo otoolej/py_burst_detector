@@ -20,14 +20,14 @@ class bdParams:
     feature_set_final: tuple = ('envelope', 'fd_higuchi', 'edo', 'if', 'psd_r2',
                                 'envelope', 'envelope', 'rel_spectral_power')
     feature_set_freqbands: tuple = (
-        (0, 1, 0, 0, 0), # envelope
+        (1, 0, 0, 0), # envelope
         None, # FD
         None, # EDO
-        (0, 0, 0, 0, 1), # IF
-        (0, 1, 0, 0, 0), # PSD r2
-        (0, 0, 0, 0, 1), # envelope
-        (0, 0, 0, 1, 0), # envelope
-        (0, 0, 0, 0, 1)) # relative PSD
+        (0, 0, 0, 1), # IF
+        (1, 0, 0, 0), # PSD r2
+        (0, 0, 0, 1), # envelope
+        (0, 0, 1, 0), # envelope
+        (0, 0, 0, 1)) # relative PSD
 
     # feature_set_final = {
     #     'envelope': (0, 1, 0, 0, 0),
@@ -48,7 +48,22 @@ class bdParams:
     epoch_win_type: tuple = ('rect', 'rect', 'rect',
                              'rect', 'hamm', 'rect', 'rect', 'hamm')
     # frequency resolution for PSD estimates:
-    N_freq = 2048
+    N_freq: int = 2048
+
+    log_feats: tuple = ('edo', 'envelope', 'rel_spectral_power')
+
+    # -------------------------------------------------------------------
+    #  EDO parameters
+    # -------------------------------------------------------------------
+    Fs_edo: int = 256
+    band_pass_edo: tuple = (0.5, 10)
+
+    # -------------------------------------------------------------------
+    #  fractal dimension parameters
+    # -------------------------------------------------------------------
+    k_max: int = 6
+    band_pass_fd: tuple = (0.5, 30)    
+    
 
     # -------------------------------------------------------------------
     #  parameters for SVM (DO NOT EDIT)
@@ -91,7 +106,7 @@ class bdParams:
     # -------------------------------------------------------------------
     L_filt: int = 5
     # band-pass filter in this band
-    freq_bands: tuple = ((0.5, 30), (0.5, 3), (3, 8), (8, 15), (15, 30))
+    freq_bands: tuple = ((0.5, 3), (3, 8), (8, 15), (15, 30))
 
     # -------------------------------------------------------------------
     #  use either static (True) or adaptive (False) threshold
