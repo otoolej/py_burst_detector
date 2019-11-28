@@ -36,7 +36,7 @@ def gen_impulsive_noise(N=1000, DBplot=False):
     x[np.unique(np.random.randint(N, size=np.floor(N / 20).astype(int)))] = 1
 
     # b) amplitude modulation on the impulses:
-    x *= np.random.randn(N, )
+    x *= np.random.randn(N, ) 
 
     # c) add some white Gaussian noise and low-pass filter:
     x += np.random.randn(N, ) / 20
@@ -48,9 +48,6 @@ def gen_impulsive_noise(N=1000, DBplot=False):
     # e) scale so more similar to EEG 
     x *= 10
 
-    # f) zero-mean:
-    # x -= np.mean(x)
-    
     # plot?
     if DBplot:
         plt.figure(1, clear=True)
@@ -352,7 +349,9 @@ def do_bandpass_filter(x, Fs, LP_fc=10, HP_fc=0.5, DBplot=False):
     # -------------------------------------------------------------------
     # hard-code filter coefficients for elliptic filter,
     # with parameters: order=6, Rp=3, Rs=50, Wn=10/(64/2), btype='low'
-    if Fs in [64, 100, 200, 256, 500] and LP_fc in [10, 30]:
+    b = []
+    a = []
+    if Fs in [64, 100, 128, 200, 256, 500, 512] and LP_fc in [10, 30]:
         b, a = filter_coeffs_ellip('ellip_filt_coeffs.npz', Fs, LP_fc)
 
     if len(b) == 0 and len(a) == 0:
@@ -378,7 +377,7 @@ def filter_coeffs_ellip(fname, Fs, LP_fc=10):
     Parameters
     ----------
     Fs: scalar
-        sampling frequency; must be either 64, 100, 200, or 256 Hz
+        sampling frequency; must be either 64, 100, 128, 200, 256, 500, or 512 Hz
 
 
     Returns

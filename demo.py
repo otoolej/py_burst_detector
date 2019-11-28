@@ -3,7 +3,7 @@ demonstration of the EEG burst detector
 
 John M. O' Toole, University College Cork
 Started: 28-11-2019
-last update: Time-stamp: <2019-11-28 16:01:02 (otoolej)>
+last update: Time-stamp: <2019-11-28 18:39:55 (otoolej)>
 """
 from burst_detector import eeg_burst_detector, utils
 from matplotlib import pyplot as plt
@@ -17,6 +17,7 @@ x = utils.gen_impulsive_noise(N)
 
 # 2. run the burst detector on the test signal:
 burst_anno, svm_out = eeg_burst_detector.eeg_bursts(x, Fs)
+
 
 # 3. plot:
 ttime = np.arange(N) / Fs

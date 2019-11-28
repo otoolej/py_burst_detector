@@ -6,19 +6,19 @@ recordings, as described in [[1]](#references). Detector uses a linear combinati
 multiple amplitude and spectral features.  Developed and tested on EEG recordings from
 premature infants (<30 weeks gestational age) using a bipolar EEG montgage (F3-C3, F4-C4,
 C3-O1, C4-O2, C3-T3, C4-T4, Cz-C3, and C4-Cz). Detector operates on 1 channel only.
+
 Requires Python 3 with with NumPy, SciPy, Matlablib, and Dataclasses packages. 
 
 To cite this software, please use reference [[1]](#references). 
 
-Python version of the [Matlab code](https://github.com/otoolej/burst_detector), also on github.
+Python version of the [Matlab code](https://github.com/otoolej/burst_detector).
 
 
-# contents
-[overview](#overview) | [requirements](#requirements) | [quick start](#quick-start) |
-[example](#example) | [licence](LICENCE.md) | [references](#references) | [contact](#contact)
+[Overview](#Overview) | [Requirements](#Requirements) | [Example](#Example) |
+[Licence](LICENCE.md) | [References](#References) | [Contact](#Contact)
 
 
-# overview
+# Overview
 
 ![Example of burst detector (purple annotation) on channel F3-C3](pics/detector_example_for_website.png)
 
@@ -32,7 +32,7 @@ machine. The code here implements this detector, which was trained on annotation
 ![Another example of burst detector on channel C4-T4](pics/detector_example_for_website_v2.png)
 
 
-# requirements
+# Requirements
 Developed and tested with Python 3.7. Requires:
 + NumPy (developed with version 1.17.0)
 + SciPy (developed with version 1.3.0)
@@ -40,68 +40,52 @@ Developed and tested with Python 3.7. Requires:
 + Dataclasses (developed with version 0.6)
 
 
-# quick start
-Set paths in Matlab/Octave, or do so using the `load_curdir` function:
-```matlab
-  >> load_curdir;
+# Example
+Generate a test signal:
+```python
+from burst_detector import eeg_burst_detector, utils
+
+N = 5000
+Fs = 64
+x = utils.gen_impulsive_noise(N)
+```
+then run the burst detector:
+```python
+burst_anno, svm_out = eeg_burst_detector.eeg_bursts(x, Fs)
 ```
 
+![Burst detector for impulsive noise test signal](pics/burst_detector_imp_noise_eg.png)
 
-# example
-```matlab
-      % use impulsive noise test signal
-      N=5000;  Fs=64; 
-      x=gen_impulsive_noise(N).*10;
-      
-	  % detect the bursts:
-      [burst_anno,svm_out]=eeg_burst_detector(x,Fs);
-
-      % and plot:
-      figure(1); clf; 
-      t=(0:N-1)./Fs;
-      hax(1)=subplot(211); hold all;
-      plot(t,burst_anno); plot(t,svm_out);
-      hax(2)=subplot(212); 
-      plot(t,x);
-      linkaxes(hax,'x');
-      xlabel('time (seconds)');
-```
-
-![Burst detector (in Matlab environment) for impulsive noise test signal](pics/burst_detector_impulsive_noise_example.png)
-
-# files
+# Files
 All Matlab files (.m files) have a description and an example in the header. To read this
 header, type `help <filename.m>` in Matlab.  Directory structure is as follows: 
 ```
-├── burst_detector
-│   ├── eeg_burst_detector.py
-│   ├── bd_parameters.py
-│   ├── feature_set.py
-│   └── utils.py
+├── burst_detector                         # burst detector PACKAGE:
+│   ├── eeg_burst_detector.py              # main module
+│   ├── bd_parameters.py                   # parameters for detector
+│   ├── feature_set.py                     # generates the features
+│   └── utils.py                           # miscellaneous functions
 ├── data
-│   └── ellip_filt_coeffs.npz
-├── pics
+│   └── ellip_filt_coeffs.npz              # filter coefficients 
+├── pics                                   # images used in this readme
 │   ├── burst_detector_impulsive_noise_example.png
 │   ├── detector_example_for_website.png
 │   └── detector_example_for_website_v2.png
+├── demo.py                                # run the burst detector with a test signal
 ├── requirements.txt
 ├── LICENSE.md
 └── README.md
 ```
 
 
-
 ---
 
-
-# references
+# References
 
 1. JM O' Toole, GB Boylan, RO Lloyd, RM Goulding, S Vanhatalo, and NJ Stevenson,
 “Detecting Bursts in the EEG of Very and Extremely Premature Infants Using a Multi-Feature
 Approach”, Medical Engineering & Physics, vol. 45, pp. 42-50, 2017. 
 [DOI:10.1016/j.medengphy.2017.04.003](https://doi.org/10.1016/j.medengphy.2017.04.003)
-(Version of the Matlab code to accompany paper: 
-[![DOI](https://zenodo.org/badge/42042482.svg)](https://zenodo.org/badge/latestdoi/42042482))
 
 
 2. JM O' Toole and NJ Stevenson, “Assessing instantaneous energy in the EEG: a
@@ -109,18 +93,18 @@ non-negative, frequency-weighted energy operator”, In 36th Annual Internationa
 of the IEEE Engineering in Medicine and Biology Society (EMBC), pp. 3288-3291, 2014. 
 { [paper](http://otoolej.github.io/pubs/PDFs/JMOToole_energy_EMBC14.pdf) |
   [poster](http://otoolej.github.io/pubs/PDFs/EMBC_poster_Aug2014_NLEO.pdf) |
-  [code (Matlab)](https://github.com/otoolej/nonlinear-energy-operators/)
+  [code (Matlab)](https://github.com/otoolej/nonlinear-energy-operators/),
   [code (Python)](https://github.com/otoolej/envelope_derivative_operator)}
 
 
 ---
 
-# contact
+# Contact
 
 John M. O' Toole
 
 Neonatal Brain Research Group,  
-INFANT Research Centre ([INFANT](http://www.infantcentre.ie/)),  
+[INFANT Research Centre](http://www.infantcentre.ie/),  
 Department of Paediatrics and Child Health,  
 University College Cork,  
 Cork University Hospital, Room 2.19 Paediatrics Building,  
