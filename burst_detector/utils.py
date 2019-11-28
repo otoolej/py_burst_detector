@@ -10,18 +10,171 @@ from scipy import signal, sparse
 from matplotlib import pyplot as plt
 import os
 
-# def testpath():
+
+def gen_impulsive_noise(N=1000, DBplot=False):
+    """
+    Impulsive noise model, idea from [1]. For testing only.
+
+    [1] Saeed V. Vaseghi, Advanced Digital Signal Processing and 
+    Noise Reduction, Second Edition, John Wiley & Sons Ltd, 2000.
+    
+    Parameters
+    ----------
+    N: scalar
+        length of noise vector
+    DBplot: bool, optional
+        plot window or not
+
+    Returns
+    -------
+    x : ndarray
+        noise vector
+    """
+    x = np.zeros(N, )
+
+    # a) impulse location:
+    x[np.unique(np.random.randint(N, size=np.floor(N / 20).astype(int)))] = 1
+
+    # b) amplitude modulation on the impulses:
+    x *= np.random.randn(N, )
+
+    # c) add some white Gaussian noise and low-pass filter:
+    x += np.random.randn(N, ) / 20
+    x = np.convolve(x, np.hamming(21), 'same')
+
+    # d) again, add white Gaussian noise
+    x += np.random.randn(N, ) / 5
+
+    # e) scale so more similar to EEG 
+    x *= 10
+
+    # f) zero-mean:
+    # x -= np.mean(x)
+    
+    # plot?
+    if DBplot:
+        plt.figure(1, clear=True)
+        plt.plot(x)
+    
+    return(x)
 
 
-#     here_path = os.path.dirname(utils.__file__ )
-#     coeff_fname = os.path.join(here_path, os.pardir, 'data', 'ellip_filt_coeffs.npz')
-#     print(coeff_fname)
-#     if os.path.exists(coeff_fname):
-#         print(coeff_fname)
-#     else:
-#         print('no path')
+def min_ibi_burst(burst_mask, burst_or_ibi=1, min_duration=256):
+    """enforce minimum duration of burst or IBI
+
+    Parameters
+    ----------
+    burst_mask: ndarray
+        mask from burst detector of bursts (1) and interbursts (0)
+    burst_or_ibi: scalar
+        either bursts (1) or interbursts (0)
+    min_duration: scalar
+        minimum duration (in samples)
+
+    Returns
+    -------
+    burst_mask : ndarray
+        processed burst mask
+    """
+    if burst_mask.ndim > 1:
+        burst_mask = burst_mask[:, 0]
+    assert(np.unique(burst_mask[~np.isnan(burst_mask)]) in np.array([0, 1])), \
+        'burst_mask should be binary'
+    assert(burst_or_ibi in [0, 1]), 'burst_or_ibi should be [0,1]'    
         
+    N = len(burst_mask)
+    burst_or_ibi_opp = 1 - burst_or_ibi
 
+    
+    # extract the segments of bursts (or IBI)
+    lens, istart, iend = len_cont_zeros(burst_mask, burst_or_ibi)
+
+
+    # remove those below the minimum duration
+    iconsider = np.argwhere(lens < min_duration)[:,0]
+    for p in iconsider:
+        burst_mask[istart[p]:iend[p]] = burst_or_ibi_opp
+
+    assert(len(burst_mask) == N), 'different length signal'
+
+    return burst_mask
+
+
+
+def len_cont_zeros(x, const=0):
+    """find runs of zeros and return length
+
+    Parameters
+    ----------
+    x: ndarray
+        input binary signal (1 or 0; NaNs allowed)
+    const: scalar
+        look for run of O's or 1's? (default=0)
+
+    Returns
+    -------
+    lens : tuple
+        array of lengths
+    """
+    # check input arguments:
+    if x.ndim > 1:
+        x = x[:, 0]
+    assert(np.unique(x[~np.isnan(x)]) in np.array([0, 1])), 'input signal should be binary'
+    assert(const in [0, 1]), 'constant should be 1 or 0'
+
+    # check for simple case first
+    if all(x == const):
+        lens = np.array([len(x) - 1])
+        istart = np.array([0])
+        iend = lens
+        
+    elif all(x != const):
+        lens = np.array([0])
+        istart = np.array([0])
+        iend = lens
+
+    else:
+        # -------------------------------------------------------------------
+        #  invert signal if necessary
+        # -------------------------------------------------------------------
+        y = np.copy(x)    
+        if const == 1:
+            y[~np.isnan(x)] = 1 - x[~np.isnan(x)].astype(int)
+        else:
+            y[~np.isnan(x)] = x[~np.isnan(x)].astype(int)
+
+        
+        # -------------------------------------------------------------------
+        #  find run of 0s or 1s:
+        # -------------------------------------------------------------------
+        iedge = np.diff(np.hstack((0, y == 0, 0)))
+        istart = np.argwhere(iedge == 1)[:, 0]
+        iend = np.argwhere(iedge == -1)[:, 0]    
+        lens = iend - istart - 1;
+
+        # -------------------------------------------------------------------
+        #  test to see if extracting the correct runs:
+        # -------------------------------------------------------------------
+        test_arr = np.array([])
+        for n in range(len(iend)):
+            test_arr = np.append(test_arr, y[istart[n]:iend[n]])
+            assert(np.unique(test_arr) == 0), 'not all zeros; indexing off?'
+
+    
+    return lens, istart, iend
+
+
+
+def find_eq_grt_than(x, thres):
+    """ needed when NaN in array; otherwise could use np.where """
+    return(np.array([ix >= thres if ~np.isnan(ix) else False for ix in x],
+                    dtype=bool))
+
+
+def find_less_than(x, thres):
+    """ needed when NaN in array; otherwise could use np.where """
+    return(np.array([ix < thres if ~np.isnan(ix) else False for ix in x],
+                    dtype=bool))
 
 
 
@@ -80,9 +233,10 @@ def epoch_window(P, L, win_type, Fs, DBplot=False):
     if DBplot:
         plt.figure(2, clear=True)
         plt.plot(win, '-o')
-        print(f'L_epoch = {L}; L_hop = {L_hop}')
+        print('L_epoch = {}; L_hop = {}'.format(L, L_hop))
 
     return({'L_hop': L_hop, 'L_epoch': L, 'win_epoch': win})
+
 
 
 def gain_filt(b, a):
@@ -329,3 +483,6 @@ def bandpass_butter_filt(x, Fs, LP_fc=3, HP_fc=0.5, L_order=5, DBplot=False):
         plt.plot(y)
 
     return(y)
+
+
+

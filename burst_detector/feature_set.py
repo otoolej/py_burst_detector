@@ -3,13 +3,12 @@ feature set
 
 John M. O' Toole, University College Cork
 Started: 06-09-2019
-last update: Time-stamp: <2019-11-22 11:22:11 (otoolej)>
+last update: Time-stamp: <2019-11-28 12:56:41 (otoolej)>
 """
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import hilbert, resample_poly
-import bd_parameters
-from burst_detector import utils
+from burst_detector import utils, bd_parameters
 
 
 
@@ -42,6 +41,7 @@ def edo_feat(x, Fs, params=None, DBplot=False):
     if params is None:
         params = bd_parameters.bdParams()
 
+    N_x = len(x)
     if Fs != params.Fs_edo:
         Fs_orig = Fs
         x = resample_poly(x, params.Fs_edo, Fs)
@@ -102,6 +102,9 @@ def edo_feat(x, Fs, params=None, DBplot=False):
         x_edo = resample_poly(x_edo, Fs_orig, Fs)
         # resampling may introduce very small negative values:
         x_edo[x_edo < 0] = 0
+
+    if N_x != len(x_edo):
+        x_edo = x_edo[:N_x]
 
     if DBplot:
         plt.figure(1, clear=True)
@@ -489,7 +492,7 @@ def fd_hi(x, kmax=[], DBplot=False):
 
 
 
-def gen_feature_set(x, Fs, params=None, DBplot=False):
+def gen_feature_set(x, Fs=None, params=None, DBplot=False):
     """generate feature set for signal x
 
     Parameters
@@ -510,6 +513,7 @@ def gen_feature_set(x, Fs, params=None, DBplot=False):
     """
     if params is None:
         params = bd_parameters.bdParams()
+    assert(Fs is not None), 'need to specify sampling frequency'
         
     feat_set = params.feature_set_final
     N = len(x)

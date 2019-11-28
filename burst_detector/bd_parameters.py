@@ -29,16 +29,6 @@ class bdParams:
         (0, 0, 1, 0), # envelope
         (0, 0, 0, 1)) # relative PSD
 
-    # feature_set_final = {
-    #     'envelope': (0, 1, 0, 0, 0),
-    #     'fd-higuchi': None,
-    #     'edo': None,
-    #     'if': (0, 0, 0, 0, 1),
-    #     'psd_r2': (0, 1, 0, 0, 0),
-    #     'envelope': (0, 0, 0, 0, 1),
-    #     'envelope': (0, 0, 0, 1, 0),
-    #     'spec-power': (0, 0, 0, 0, 1)}
-
     # epoch size is slightly different for each feature
     # (follows feature order from above); (in seconds):
     epoch_length: tuple = (1, 1, 1, 2, 2, 1, 1, 2)
