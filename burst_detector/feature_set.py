@@ -3,10 +3,11 @@ feature set
 
 John M. O' Toole, University College Cork
 Started: 06-09-2019
-last update: Time-stamp: <2019-11-28 18:09:39 (otoolej)>
+last update: Time-stamp: <2019-11-29 10:23:43 (otoolej)>
 """
 import numpy as np
 from matplotlib import pyplot as plt
+from numba import njit
 from scipy.signal import hilbert, resample_poly
 from burst_detector import utils, bd_parameters
 
@@ -463,6 +464,8 @@ def fd_hi(x, kmax=[], DBplot=False):
     # ---------------------------------------------------------------------
     #  curve length for each vector:
     # ---------------------------------------------------------------------
+    # @njit
+    # def curve_lens(k_all, N):
     inext = 0
     L_avg = np.zeros(len(k_all), )
 
@@ -470,15 +473,19 @@ def fd_hi(x, kmax=[], DBplot=False):
         L = np.zeros(k, )
 
         for m in range(1, k + 1):
-            ik = np.arange(1, np.floor((N - m) / k).astype(int) + 1)
+            ik = np.arange(1, np.floor((N - m) / k) + 1, dtype=np.int)
             scale_factor = (N - 1) / (np.floor((N - m) / k) * k)
 
-            L[m - 1] = sum(abs(x[m + ik * k - 1] - x[m + (ik-1) * k - 1])) * \
+            L[m - 1] = np.sum(np.abs(x[m + ik * k - 1] - x[m + (ik-1) * k - 1])) * \
                 (scale_factor / k)
 
         L_avg[inext] = np.nanmean(L)
         inext = inext + 1
 
+    #     return(L_avg)
+
+    # L_avg = curve_lens(k_all, N)
+    
     # -------------------------------------------------------------------
     #  form log-log plot of scale v. curve length
     # -------------------------------------------------------------------

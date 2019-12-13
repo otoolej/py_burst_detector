@@ -3,8 +3,9 @@ demonstration of the EEG burst detector
 
 John M. O' Toole, University College Cork
 Started: 28-11-2019
-last update: Time-stamp: <2019-11-28 18:39:55 (otoolej)>
+last update: Time-stamp: <2019-12-11 12:17:07 (otoolej)>
 """
+import numpy as np
 from burst_detector import eeg_burst_detector, utils
 from matplotlib import pyplot as plt
 
