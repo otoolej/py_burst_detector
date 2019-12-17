@@ -3,11 +3,12 @@ feature set
 
 John M. O' Toole, University College Cork
 Started: 06-09-2019
-last update: Time-stamp: <2019-11-29 10:23:43 (otoolej)>
+last update: Time-stamp: <2019-12-17 18:01:52 (otoolej)>
 """
 import numpy as np
 from matplotlib import pyplot as plt
-from numba import njit
+from numba import jit
+import math
 from scipy.signal import hilbert, resample_poly
 from burst_detector import utils, bd_parameters
 
@@ -446,7 +447,7 @@ def fd_hi(x, kmax=[], DBplot=False):
     """
     N = len(x)
     if not kmax:
-        kmax = np.floor(N / 10).astype(int)
+        kmax = math.floor(N / 10)
 
     # what values of k to compute?
     ik = 1
@@ -456,7 +457,7 @@ def fd_hi(x, kmax=[], DBplot=False):
         if ik <= 4:
             knew = ik
         else:
-            knew = np.floor(2 ** ((ik+5)/4)).astype(int)
+            knew = math.floor(2 ** ((ik + 5) / 4))
         if knew <= kmax:
             k_all.append(knew)
         ik = ik + 1
@@ -464,27 +465,7 @@ def fd_hi(x, kmax=[], DBplot=False):
     # ---------------------------------------------------------------------
     #  curve length for each vector:
     # ---------------------------------------------------------------------
-    # @njit
-    # def curve_lens(k_all, N):
-    inext = 0
-    L_avg = np.zeros(len(k_all), )
-
-    for k in k_all:
-        L = np.zeros(k, )
-
-        for m in range(1, k + 1):
-            ik = np.arange(1, np.floor((N - m) / k) + 1, dtype=np.int)
-            scale_factor = (N - 1) / (np.floor((N - m) / k) * k)
-
-            L[m - 1] = np.sum(np.abs(x[m + ik * k - 1] - x[m + (ik-1) * k - 1])) * \
-                (scale_factor / k)
-
-        L_avg[inext] = np.nanmean(L)
-        inext = inext + 1
-
-    #     return(L_avg)
-
-    # L_avg = curve_lens(k_all, N)
+    L_avg = curve_lens(x, np.array(k_all).astype(int), N)
     
     # -------------------------------------------------------------------
     #  form log-log plot of scale v. curve length
@@ -496,6 +477,48 @@ def fd_hi(x, kmax=[], DBplot=False):
     fd = -c[1, 0]
 
     return(fd)
+
+
+@jit(nopython=True, fastmath=False)
+def curve_lens(x, k_all, N):
+    """generate the different curve lengths at different scales
+
+    Parameters
+    ----------
+    x: ndarray
+        time-domain signal
+    k_all: ndarray (int)
+        array of scale values
+    N: scalar
+        length of x
+
+    Returns
+    -------
+    L_avg : ndarray
+        curve length for different scale values
+    """
+    inext = 0
+    L_avg = np.zeros(len(k_all), )
+
+    for k in k_all:
+        L = 0
+
+        for m in range(1, k + 1):
+            U_limit = math.floor((N - m) / k)
+            scale_factor = ((N - 1) / (U_limit * k)) / k
+            im = m - 1
+
+            L_tmp = 0
+            for ik in range(1, U_limit + 1):
+                ikk = im + ik * k
+                L_tmp += abs(x[ikk] - x[ikk - k])
+
+            L += L_tmp * scale_factor 
+
+        L_avg[inext] = L / k
+        inext += 1
+
+    return(L_avg)
 
 
 

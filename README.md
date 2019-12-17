@@ -38,6 +38,7 @@ Developed and tested with Python 3.7. Requires:
 + SciPy (developed with version 1.3.0)
 + Matplotlib (developed with version 3.1.1)
 + Dataclasses (developed with version 0.6)
++ Numba (developed with version 0.46.0)
 
 
 # Example
