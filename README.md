@@ -1,13 +1,13 @@
 Burst Detector for Preterm EEG
 ==============================
 
-Collection of M-files (computer code) to implement a method to detect bursts on EEG
-recordings, as described in [[1]](#references). Detector uses a linear combination of
-multiple amplitude and spectral features.  Developed and tested on EEG recordings from
-premature infants (<30 weeks gestational age) using a bipolar EEG montgage (F3-C3, F4-C4,
-C3-O1, C4-O2, C3-T3, C4-T4, Cz-C3, and C4-Cz). Detector operates on 1 channel only.
+Method to detect bursts on EEG recordings, as described in [[1]](#references). Detector
+uses a linear combination of multiple amplitude and spectral features.  Developed and
+tested on EEG recordings from premature infants (<30 weeks gestational age) using a
+bipolar EEG montgage (F3-C3, F4-C4, C3-O1, C4-O2, C3-T3, C4-T4, Cz-C3, and
+C4-Cz). Detector operates on 1 channel only.
 
-Requires Python 3 with with NumPy, SciPy, Matlablib, and Dataclasses packages. 
+Requires Python 3 with with NumPy, SciPy, Matlablib, Numba, and Dataclasses packages. 
 
 To cite this software, please use reference [[1]](#references). 
 

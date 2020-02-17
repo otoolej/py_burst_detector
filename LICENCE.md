@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) 2019, John M. O' Toole, University College Cork
+Copyright (c) 2019, John M. O'Toole, University College Cork
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
